@@ -33,7 +33,7 @@
  */
 
 /* Code Manipulation API Sample:
- * inscount.c
+ * Generate two separate files - bb structure and bb trace. Offline generate opcode trace 
  *
  * Reports the dynamic count of the total number of instructions executed.
  * Illustrates how to perform performant clean calls.
@@ -64,7 +64,7 @@ static uint64 global_count;
 file_t  bbstructlog;
 file_t  bbtrace;
 
-static void inscount(void *tag) 
+static void opcode_signal(void *tag) 
 { 
     //dr_printf("in dynamorio_basic_block(tag=0x%016lx, bb=0x%lx)\n", tag);
     dr_fprintf(bbtrace, "tag=0x%016lx\n", tag);
@@ -85,8 +85,7 @@ static dr_emit_flags_t event_app_instruction(void *drcontext, void *tag,
 DR_EXPORT void
 dr_client_main(client_id_t id, int argc, const char *argv[])
 {
-    dr_set_client_name("DynamoRIO Sample Client 'inscount'",
-                       "http://dynamorio.org/issues");
+    dr_set_client_name("DynamoRIO Sample Client 'opcodei-signal'");
     bbstructlog = log_file_open(id, NULL, NULL,
             "bb-struct-trace", 0);
     bbtrace = log_file_open(id, NULL, NULL,
@@ -101,7 +100,7 @@ dr_client_main(client_id_t id, int argc, const char *argv[])
                                             NULL);
 
     /* make it easy to tell, by looking at log file, which client executed */
-    dr_log(NULL, LOG_ALL, 1, "Client 'inscount' initializing\n");
+    dr_log(NULL, LOG_ALL, 1, "Client 'opcode-signal' initializing\n");
 #ifdef SHOW_RESULTS
     /* also give notification to stderr */
     if (dr_is_notify_on()) {
@@ -109,7 +108,7 @@ dr_client_main(client_id_t id, int argc, const char *argv[])
         /* ask for best-effort printing to cmd window.  must be called at init. */
         dr_enable_console_printing();
 # endif
-        dr_fprintf(STDERR, "Client inscount is running\n");
+        dr_fprintf(STDERR, "Client opcode-signal is running\n");
     }
 #endif
 }
@@ -160,7 +159,7 @@ event_app_instruction(void *drcontext, void *tag, instrlist_t *bb, instr_t *inst
     num_instrs = (uint)(ptr_uint_t)user_data;
     dr_fprintf(bbstructlog, "instrument(tag="PFX", bb="PFX")\n", tag, bb);
     dr_insert_clean_call(drcontext, bb, instrlist_first_app(bb),
-                         (void *)inscount, false /* save fpstate */, 1,
+                         (void *)opcode_signal, false /* save fpstate */, 1,
                          OPND_CREATE_INT64(tag));
     for(instr = instrlist_first_app(bb);
         instr != NULL;
