@@ -58,7 +58,7 @@ static uint64 global_count;
 /* A simple clean call that will be automatically inlined because it has only
  * one argument and contains no calls to other functions.
  */
-static void inscount(uint bb_location, uint tag) 
+static void bbtrace(uint bb_location, uint tag) 
 { 
     dr_printf("in dynamorio_basic_block(bb=0x%lx, tag=0x%lx)\n", tag, bb_location);
 }
@@ -76,8 +76,7 @@ static dr_emit_flags_t event_app_instruction(void *drcontext, void *tag,
 DR_EXPORT void
 dr_client_main(client_id_t id, int argc, const char *argv[])
 {
-    dr_set_client_name("DynamoRIO Sample Client 'inscount'",
-                       "http://dynamorio.org/issues");
+    dr_set_client_name("DynamoRIO Sample Client 'bbtrace'");
     drmgr_init();
     /* register events */
     dr_register_exit_event(event_exit);
@@ -86,7 +85,7 @@ dr_client_main(client_id_t id, int argc, const char *argv[])
                                             NULL);
 
     /* make it easy to tell, by looking at log file, which client executed */
-    dr_log(NULL, LOG_ALL, 1, "Client 'inscount' initializing\n");
+    dr_log(NULL, LOG_ALL, 1, "Client 'bbtrace' initializing\n");
 #ifdef SHOW_RESULTS
     /* also give notification to stderr */
     if (dr_is_notify_on()) {
@@ -94,7 +93,7 @@ dr_client_main(client_id_t id, int argc, const char *argv[])
         /* ask for best-effort printing to cmd window.  must be called at init. */
         dr_enable_console_printing();
 # endif
-        dr_fprintf(STDERR, "Client inscount is running\n");
+        dr_fprintf(STDERR, "Client bbtrace is running\n");
     }
 #endif
 }
@@ -153,7 +152,7 @@ event_app_instruction(void *drcontext, void *tag, instrlist_t *bb, instr_t *inst
     num_instrs = (uint)(ptr_uint_t)user_data;
     dr_printf("instrument(tag="PFX", bb="PFX")\n", tag, bb);
     dr_insert_clean_call(drcontext, bb, instrlist_first_app(bb),
-                         (void *)inscount, false /* save fpstate */, 2,
+                         (void *)bbtrace, false /* save fpstate */, 2,
                          OPND_CREATE_INT64(bb), OPND_CREATE_INT64(tag));
     return DR_EMIT_DEFAULT;
 }
